@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Game</title>
+    <style>
+         .container {
+            position: relative;
+            height: 100vh;
+            border: 1px solid #000;
+            padding: 10em 0;
+        }
+        .box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 1200px;   
+            height: 100%;         
+            
+        }
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            width: 1200px;
+            
+        }
+        .grid img {
+            width: 250px;
+            height: 250px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .connected {
+            border: 2px solid green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box">
+            <grid-layout></grid-layout>            
+        </div>
+    </div>    
+    <script>
+        class GridLayout extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });                
+
+                const style = document.createElement('style');
+                style.textContent = `
+                    .grid-container {
+                        display: grid;
+                        grid-template-columns: repeat(4, 1fr);
+                        gap: 5px;
+                        padding: 5px;
+                    }
+                `;
+
+                const container = document.createElement('div');
+                container.className = 'grid-container';               
+                const taken = new Set();
+                let r;
+                // Iterate over the items and create grid-item elements
+                for(let i=0; i< 16; i++){                                           
+                    do {
+                        r = Math.floor(Math.random() * 16) + 1;           
+                        console.log(r, taken.has(r), taken.size, taken)
+                    } while(taken.has(r));
+                    const gridItem = document.createElement('grid-item');
+                    gridItem.onclick = () => this.connectImage(gridItem)
+                    gridItem.setAttribute('img-src', `./assets/${r}.jpg`);
+                    gridItem.setAttribute('data-id', i);
+                    container.appendChild(gridItem);
+                    taken.add(r);
+                }
+
+                this.shadowRoot.append(style, container);
+            }
+
+            selectedImages = [];
+            connectImage(img) {
+                if (this.selectedImages.includes(img)) {
+                    img.classList.remove('connected');
+                    this.selectedImages = this.selectedImages.filter(i => i !== img);
+                } else {
+                    img.classList.add('connected');
+                    this.selectedImages.push(img);
+                }
+                if (this.selectedImages.length === 2) {
+                    checkConnection();
+                }
+            }
+
+            checkConnection() {
+                // Logic to check if the selected images are correctly connected
+                // For this example, we'll just clear the selection
+                //selectedImages.forEach(img => img.classList.remove('connected'));
+                //selectedImages = [];
+            }
+        }
+
+        customElements.define('grid-layout', GridLayout);
+
+        class GridItem extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+
+                const style = document.createElement('style');
+                style.textContent = `
+                     .grid-item {
+                        background-color: lightblue;
+                        border: 1px solid #ccc;                        
+                        text-align: center;                        
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .grid-item img {
+                        width: 225x;
+                        height: 225px;                        
+                    }
+                `;
+
+                const container = document.createElement('div');
+                container.className = 'grid-item';
+
+                const img = document.createElement('img');
+                img.alt = 'Grid Item Image';
+
+                const text = document.createElement('span');
+                text.textContent = this.textContent;
+
+                container.appendChild(img);
+                container.appendChild(text);
+
+                this._img = img;
+
+                this.shadowRoot.append(style, container);
+            }
+
+            connectedCallback() {
+                // Ensure the image and text are set when the element is first connected
+                if (this.hasAttribute('img-src')) {
+                    this._img.src = this.getAttribute('img-src');
+                }
+                if (this.hasAttribute('data-id')) {
+                    this._text.textContent = this.getAttribute('data-id');
+                }
+            }
+        }
+
+        customElements.define('grid-item', GridItem);
+
+
+
+
+
+    </script>
+</body>
+</html>
